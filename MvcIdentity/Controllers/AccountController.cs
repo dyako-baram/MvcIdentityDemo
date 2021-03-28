@@ -38,6 +38,12 @@ namespace MvcIdentity.Controllers
             ViewBag.ReturnUrl = returnurl;
             if (ModelState.IsValid)
             {
+                var user =await _userManager.FindByNameAsync(model.UserName);
+                if (!user.EmailConfirmed)
+                {
+                    ModelState.AddModelError(string.Empty, "Email not confirmed yet");
+                    return View(model);
+                }
                 var result = await _signInManager.PasswordSignInAsync(model.UserName,model.Password,model.RememberMe,true);
                 if (result.Succeeded)
                 {
@@ -59,6 +65,10 @@ namespace MvcIdentity.Controllers
         [HttpGet]
         public IActionResult Register(string returnurl = "~/")
         {
+            if (_signInManager.IsSignedIn(User))
+            {
+                return RedirectToAction(nameof(Index),"Home");
+            }
             ViewBag.ReturnUrl = returnurl;
             RegisterViewModel model = new();
             return View(model);
